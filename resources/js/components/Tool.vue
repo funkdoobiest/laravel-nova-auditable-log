@@ -2,8 +2,16 @@
     <div>
         <hr class="border-t-2 border-50 my-11">
 
-        <div v-if="displayAudits">
-            <h2 class="mb-3 text-90 font-normal text-2xl">Audit Log</h2>
+        <button class="btn btn-default btn-primary" @click.prevent="showAndFetch('user')" v-if="displayAudits === false">View
+            User Audit Log
+        </button>
+
+        <button class="btn btn-default btn-primary" @click.prevent="showAndFetch('admin')" v-if="displayAdminAudits === false">View
+            Admin Audit Log
+        </button>
+
+        <div v-if="displayAudits || displayAdminAudits" class="mt-8">
+            <h2 class="mb-3 text-90 font-normal text-2xl">{{ typeDisplay }} Audit Log</h2>
             <div class="card">
                 <table cellpadding="0" cellspacing="0" data-testid="resource-table" class="table w-full">
                     <thead>
@@ -67,7 +75,7 @@
                     <nav class="flex justify-between items-center">
                         <button  :disabled="pagination.prev_page_url === null" rel="prev" dusk="previous"
                                 class="btn btn-link py-3 px-4 text-80" :class="{ 'opacity-50': pagination.prev_page_url === null, 'text-primary': pagination.prev_page_url !== null }"
-                                 @click="fetchAudits(pagination.prev_page_url)">
+                                 @click="fetchAudits(type, pagination.prev_page_url)">
                             Previous
                         </button>
                         <span class="text-sm text-80 px-4">
@@ -75,17 +83,13 @@
                 </span>
                         <button :disabled="pagination.next_page_url === null" rel="next" dusk="next"
                                 :class="{ 'opacity-50': pagination.next_page_url === null, 'text-primary': pagination.next_page_url !== null }"
-                                class="btn btn-link py-3 px-4 text-80" @click="fetchAudits(pagination.next_page_url)">
+                                class="btn btn-link py-3 px-4 text-80" @click="fetchAudits(type, pagination.next_page_url)">
                             Next
                         </button>
                     </nav>
                 </div>
             </div>
         </div>
-
-        <button class="btn btn-default btn-primary" @click.prevent="showAndFetch" v-if="displayAudits === false">View
-            Audit Log
-        </button>
 
     </div>
 </template>
@@ -98,28 +102,46 @@
             return {
                 audits: [],
                 displayAudits: false,
-                pagination: {}
+                displayAdminAudits: false,
+                pagination: {},
+                type: false,
+                typeDisplay: false
             }
         },
 
         mounted() {
             if (this.displayAudits === true) {
-                this.fetchAudits();
+                this.fetchAudits(type);
+            }
+
+            if (this.displayAdminAudits === true) {
+                this.fetchAudits(type);
             }
         },
 
         methods: {
 
-            showAndFetch() {
-                this.displayAudits = true;
-                this.fetchAudits();
+            showAndFetch(type) {
+
+                if(type == 'admin') {
+                    this.typeDisplay = 'Admin';
+                    this.displayAudits = false;
+                    this.displayAdminAudits = true;
+                } else {
+                    this.typeDisplay = 'User';
+                    this.displayAdminAudits = false;
+                    this.displayAudits = true;
+                }
+
+
+                this.fetchAudits(type);
             },
 
-            fetchAudits(page = null) {
+            fetchAudits(type, page = null) {
                 let vm = this;
 
                 if (!page) {
-                    page = '/nova-vendor/auditable-log/audits/' + vm.resourceName + '/' + vm.resourceId
+                    page = '/nova-vendor/auditable-log/audits/' + vm.resourceName + '/' + vm.resourceId + '/' + type
                 }
 
                 Nova.request().get(page)

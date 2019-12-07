@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use \Devpartners\AuditableLog\Controllers\ToolController;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,11 +14,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/audits/{resourceName}/{resourceId}', function (Request $request, $resourceName, $resourceId) {
-    $model = \Laravel\Nova\Nova::modelInstanceForKey($resourceName);
-    $record = $model::find($resourceId);
+Route::get('/audits/{resourceName}/{resourceId}/user', [ToolController::class, 'userAudits']);
 
-    $audits = $record->audits()->with('user')->orderBy('created_at', 'desc')->paginate();
-
-    return response()->json(['status' => 'OK', 'audits' => $audits]);
-});
+Route::get('/audits/{resourceName}/{resourceId}/admin', [ToolController::class, 'adminAudits']);
